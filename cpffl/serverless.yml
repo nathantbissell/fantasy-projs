@@ -1,0 +1,68 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: natebissmadethis
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: fantasy-projs
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: cpffl
+
+stages:
+  default:
+    params:
+      tableName: "users-table-${sls:stage}"
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  # Uncomment to easily set up a custom domain. Read the docs for more details:
+  # https://www.serverless.com/framework/docs/providers/aws/guide/domains
+  # domain: api.example.com
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt: [UsersTable, Arn]
+  environment:
+    USERS_TABLE: ${param:tableName}
+
+functions:
+  api:
+    handler: handler.handler
+    events:
+      - httpApi: "*"
+
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${param:tableName}
+    CPFFLTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+        TableName: cpffl-table
