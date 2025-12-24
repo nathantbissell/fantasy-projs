@@ -2,3 +2,6 @@ node_modules
 .serverless
 .env
 **/.serverless
+.next
+.DS_Store
+out
